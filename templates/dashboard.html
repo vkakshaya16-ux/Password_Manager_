@@ -2,92 +2,87 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Dashboard</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
 <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Poppins', sans-serif;
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Poppins',sans-serif;
 }
 
-body {
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    padding: 20px;
-    transition: 0.3s;
+body{
+    background:linear-gradient(135deg,#667eea,#764ba2);
+    color:white;
+    padding:20px;
+    transition:0.3s;
 }
 
-.dark {
-    background: #121212;
+.dark{
+    background:#121212;
 }
 
-/* Header */
-.header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 20px;
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
 }
 
-/* Buttons */
-button {
-    padding: 8px;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
+button{
+    padding:8px 12px;
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
 }
 
-/* Container */
-.container {
-    max-width: 950px;
-    margin: auto;
-    background: rgba(255,255,255,0.1);
-    backdrop-filter: blur(15px);
-    padding: 20px;
-    border-radius: 15px;
+.container{
+    max-width:950px;
+    margin:auto;
+    background:rgba(255,255,255,0.1);
+    backdrop-filter:blur(15px);
+    padding:20px;
+    border-radius:15px;
 }
 
-/* Inputs */
-input {
-    padding: 10px;
-    margin: 5px;
-    border-radius: 6px;
-    border: none;
+input{
+    padding:10px;
+    margin:5px;
+    border:none;
+    border-radius:6px;
 }
 
-/* Table */
-table {
-    width: 100%;
-    margin-top: 20px;
-    border-collapse: collapse;
+.search{
+    width:100%;
+    margin-bottom:10px;
 }
 
-th, td {
-    padding: 10px;
-    text-align: center;
+table{
+    width:100%;
+    border-collapse:collapse;
+    margin-top:20px;
 }
 
-tr {
-    background: rgba(255,255,255,0.1);
+th,td{
+    padding:10px;
+    text-align:center;
 }
 
-/* Search */
-.search {
-    width: 100%;
-    margin-bottom: 10px;
+tr{
+    background:rgba(255,255,255,0.1);
 }
 
-/* Strength */
-.strength {
-    font-size: 12px;
+tr:hover{
+    background:rgba(255,255,255,0.2);
 }
 
-/* Hover */
-tr:hover {
-    background: rgba(255,255,255,0.2);
+.strength{
+    font-size:12px;
+    margin-top:5px;
 }
 </style>
 </head>
@@ -96,9 +91,12 @@ tr:hover {
 
 <div class="header">
     <h2>🔐 Password Manager</h2>
+
     <div>
         <button onclick="toggleDark()">🌙</button>
-        <a href="/logout"><button style="background:red;color:white;">Logout</button></a>
+        <a href="/logout">
+            <button style="background:red;color:white;">Logout</button>
+        </a>
     </div>
 </div>
 
@@ -107,19 +105,26 @@ tr:hover {
     <!-- Search -->
     <input type="text" id="search" class="search" placeholder="🔍 Search..." onkeyup="filterTable()">
 
-    <!-- Add Form -->
-    <form method="POST">
-        <input type="text" name="app_name" placeholder="App Name" required>
-        <input type="text" name="app_username" placeholder="Username" required>
-        <input type="password" id="pwd" name="app_password" placeholder="Password" required onkeyup="checkStrength()">
+    <!-- Add Password Form -->
+    <form action="/add" method="POST">
+
+        <input type="text" name="site" placeholder="App Name" required>
+
+        <input type="text" name="username" placeholder="Username" required>
+
+        <input type="password" id="pwd" name="password" placeholder="Password" required onkeyup="checkStrength()">
+
         <button type="button" onclick="generatePassword()">⚡ Generate</button>
+
         <button type="submit">Save</button>
+
     </form>
 
     <div id="strength" class="strength"></div>
 
     <!-- Table -->
     <table id="table">
+
         <tr>
             <th>App</th>
             <th>Username</th>
@@ -129,78 +134,118 @@ tr:hover {
 
         {% for p in passwords %}
         <tr>
-            <td>{{ p.app_name }}</td>
-            <td>{{ p.app_username }}</td>
-            <td><span id="pwd{{ p.id }}">******</span></td>
+            <td>{{ p.site }}</td>
+            <td>{{ p.username }}</td>
+
             <td>
-                <button onclick="togglePwd('{{ p.id }}','{{ p.app_password }}')">👁</button>
-                <button onclick="copyPwd('{{ p.app_password }}')">📋</button>
-                <form action="/delete/{{ p.id }}" method="POST" style="display:inline;">
-                    <button>🗑</button>
-                </form>
+                <span id="pwd{{ p.id }}">******</span>
+            </td>
+
+            <td>
+
+                <button onclick="togglePwd('{{ p.id }}','{{ p.password }}')">👁</button>
+
+                <button onclick="copyPwd('{{ p.password }}')">📋</button>
+
+                <a href="/delete/{{ p.id }}">
+                    <button type="button">🗑</button>
+                </a>
+
             </td>
         </tr>
         {% endfor %}
+
     </table>
 
 </div>
 
 <script>
-// Show/Hide Password
-function togglePwd(id, pwd) {
-    let el = document.getElementById("pwd"+id);
-    el.innerText = (el.innerText === "******") ? pwd : "******";
+
+// Show / Hide Password
+function togglePwd(id,pwd){
+    let el=document.getElementById("pwd"+id);
+
+    if(el.innerText==="******"){
+        el.innerText=pwd;
+    }else{
+        el.innerText="******";
+    }
 }
 
-// Copy
-function copyPwd(text) {
+// Copy Password
+function copyPwd(text){
     navigator.clipboard.writeText(text);
-    alert("Copied!");
+    alert("Password Copied!");
 }
 
-// Search
-function filterTable() {
-    let input = document.getElementById("search").value.toLowerCase();
-    let rows = document.querySelectorAll("#table tr");
+// Search Filter
+function filterTable(){
 
-    rows.forEach((row, index) => {
-        if (index === 0) return;
-        row.style.display = row.innerText.toLowerCase().includes(input) ? "" : "none";
+    let input=document.getElementById("search").value.toLowerCase();
+
+    let rows=document.querySelectorAll("#table tr");
+
+    rows.forEach((row,index)=>{
+
+        if(index===0) return;
+
+        row.style.display=row.innerText.toLowerCase().includes(input) ? "" : "none";
+
     });
 }
 
-// Password Generator
-function generatePassword() {
-    let chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$!";
-    let pwd = "";
-    for (let i=0; i<10; i++) {
+// Generate Password
+function generatePassword(){
+
+    let chars="abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$!";
+
+    let pwd="";
+
+    for(let i=0;i<10;i++){
+
         pwd += chars[Math.floor(Math.random()*chars.length)];
+
     }
-    document.getElementById("pwd").value = pwd;
+
+    document.getElementById("pwd").value=pwd;
+
     checkStrength();
 }
 
-// Strength
-function checkStrength() {
-    let pwd = document.getElementById("pwd").value;
-    let s = document.getElementById("strength");
+// Password Strength
+function checkStrength(){
 
-    if (pwd.length < 6) {
-        s.innerText = "Weak";
-        s.style.color = "red";
-    } else if (/[A-Z]/.test(pwd) && /[0-9]/.test(pwd)) {
-        s.innerText = "Strong";
-        s.style.color = "lightgreen";
-    } else {
-        s.innerText = "Medium";
-        s.style.color = "yellow";
+    let pwd=document.getElementById("pwd").value;
+
+    let s=document.getElementById("strength");
+
+    if(pwd.length<6){
+
+        s.innerText="Weak";
+        s.style.color="red";
+
+    }
+    else if(/[A-Z]/.test(pwd) && /[0-9]/.test(pwd)){
+
+        s.innerText="Strong";
+        s.style.color="lightgreen";
+
+    }
+    else{
+
+        s.innerText="Medium";
+        s.style.color="yellow";
+
     }
 }
 
 // Dark Mode
-function toggleDark() {
+function toggleDark(){
+
     document.body.classList.toggle("dark");
+
 }
+
 </script>
 
 </body>

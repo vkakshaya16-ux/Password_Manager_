@@ -1,11 +1,11 @@
 import os
 import psycopg2
-from flask import Flask, render_template, request, redirect
+from flask import Flask, render_template, request, redirect, url_for
 from cryptography.fernet import Fernet
 
 app = Flask(__name__)
 
-# Flask secret (for sessions later if needed)
+# ================= SECRET =================
 app.secret_key = os.getenv("FLASK_SECRET", "dev-secret")
 
 # ================= DATABASE =================
@@ -14,7 +14,7 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 conn = psycopg2.connect(DATABASE_URL)
 cursor = conn.cursor()
 
-# ================= TABLE =================
+# ================= TABLES =================
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS passwords (
     id SERIAL PRIMARY KEY,
@@ -39,13 +39,32 @@ def decrypt_password(encrypted_password):
 
 # ================= ROUTES =================
 
+# Home Page → Login
 @app.route('/')
 def home():
-    return redirect('/dashboard')
+    return render_template("login.html")
 
+# Login Page Submit
+@app.route('/login', methods=['POST'])
+def login():
+    # You can add real login later
+    return redirect(url_for('dashboard'))
+
+# Register Page
+@app.route('/register')
+def register():
+    return render_template("register.html")
+
+# Register Submit
+@app.route('/register_user', methods=['POST'])
+def register_user():
+    # You can add real register logic later
+    return redirect(url_for('home'))
+
+# Dashboard
 @app.route('/dashboard')
 def dashboard():
-    cursor.execute("SELECT * FROM passwords")
+    cursor.execute("SELECT * FROM passwords ORDER BY id DESC")
     data = cursor.fetchall()
 
     passwords = []
@@ -59,6 +78,7 @@ def dashboard():
 
     return render_template("dashboard.html", passwords=passwords)
 
+# Add Password
 @app.route('/add', methods=['POST'])
 def add_password():
     site = request.form['site']
@@ -74,14 +94,21 @@ def add_password():
 
     conn.commit()
 
-    return redirect('/dashboard')
+    return redirect(url_for('dashboard'))
 
+# Delete Password
 @app.route('/delete/<int:id>')
 def delete_password(id):
     cursor.execute("DELETE FROM passwords WHERE id=%s", (id,))
     conn.commit()
-    return redirect('/dashboard')
 
+    return redirect(url_for('dashboard'))
 
+# Logout
+@app.route('/logout')
+def logout():
+    return redirect(url_for('home'))
+
+# ================= RUN =================
 if __name__ == "__main__":
     app.run(debug=True)
